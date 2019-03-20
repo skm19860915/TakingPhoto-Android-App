@@ -1,0 +1,5 @@
+<root>
+    <item name='java.util.Comparator java.util.Comparator&lt;T&gt; reverseOrder()'>
+        <annotation name='android.support.annotation.NonNull' />
+    </item>
+</root>
