@@ -23,7 +23,6 @@
                 android:layout_height="wrap_content"
                 android:background="@color/colorHeader">
 
-
                 <TextView
                     android:id="@+id/keyTextView"
                     android:layout_width="match_parent"
@@ -69,8 +68,7 @@
                     android:id="@+id/photoViewPager"
                     android:background="@color/colorGrey"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    >
+                    android:layout_height="match_parent">
 
                 </android.support.v4.view.ViewPager>
             </LinearLayout>

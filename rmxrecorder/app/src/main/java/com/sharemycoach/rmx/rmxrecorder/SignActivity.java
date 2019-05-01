@@ -42,27 +42,16 @@ public class SignActivity extends AppCompatActivity {
         checkBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bitmap bitmap = getBitmap(signDrawLayout);
-                boolean success = SaveImage(bitmap);
-                if (success)
-                    goBack();
+                onBackPressed();
             }
         });
     }
 
-    private void goBack() {
-        String[] strings  = filePath.split("/");
-        String vehicleId = strings[strings.length - 2];
-        String rentalId = strings[strings.length - 1];
-        Intent intent = new Intent(getApplicationContext(), IOActivity.class);
-        intent.putExtra("vehicleId", vehicleId);
-        intent.putExtra("rentalId", rentalId);
-        intent.putExtra("target", target);
-        startActivity(intent);
-        finish();
-    }
-
     private Bitmap getBitmap(LinearLayout layout) {
+        boolean isDraw = signDrawingView.isTouched;
+        if (!isDraw)
+            return null;
+
         layout.setDrawingCacheEnabled(true);
         layout.buildDrawingCache();
         Bitmap bitmap = Bitmap.createBitmap(layout.getDrawingCache());
@@ -75,7 +64,7 @@ public class SignActivity extends AppCompatActivity {
         if (allowed){
             String text = signEditText.getText().toString();
             if (text.isEmpty()){
-                Toasty.error(getApplication(), "Please input your sign!", Toast.LENGTH_LONG, true).show();
+                Toasty.error(getApplication(), "Please sign your name!", Toast.LENGTH_LONG, true).show();
                 return false;
             }
             String name = target + "_Signature_" + text + ".jpg";
@@ -108,5 +97,30 @@ public class SignActivity extends AppCompatActivity {
             }
         }
         return true;
+    }
+
+    private void goBack() {
+        String[] strings  = filePath.split("/");
+        String vehicleId = strings[strings.length - 2];
+        String rentalId = strings[strings.length - 1];
+        Intent intent = new Intent(getApplicationContext(), IOActivity.class);
+        intent.putExtra("vehicleId", vehicleId);
+        intent.putExtra("rentalId", rentalId);
+        intent.putExtra("target", target);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Bitmap bitmap = getBitmap(signDrawLayout);
+        if (bitmap == null){
+            goBack();
+            return;
+        }
+
+        boolean success = SaveImage(bitmap);
+        if (success)
+            goBack();
     }
 }

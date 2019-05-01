@@ -22,13 +22,20 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextPaint;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +59,6 @@ public class IndicatorActivity extends AppCompatActivity implements LocationList
     private String fileName;
     private ImageView odometerImageView;
     private EditText odometerEditText;
-    private ImageButton cameraBtn;
     private Bitmap bitmap;
     private String param;
     private String target;
@@ -73,7 +79,6 @@ public class IndicatorActivity extends AppCompatActivity implements LocationList
 
         backBtn = findViewById(R.id.backButton);
         odometerImageView = findViewById(R.id.odometerImageView);
-        cameraBtn = findViewById(R.id.largecameraButton);
         odometerEditText = findViewById(R.id.odometerEditText);
         keyTextView = findViewById(R.id.keyTextView);
         labelTextView = findViewById(R.id.labelTextView);
@@ -84,80 +89,65 @@ public class IndicatorActivity extends AppCompatActivity implements LocationList
         target = intent.getStringExtra("target");
         keyTextView.setText(param);
         labelTextView.setText("Enter " + param + ":");
-        odometerEditText.setEnabled(false);
 
-        File dir = new File(filePath);
-        if (dir.exists())
-        {
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        boolean allowed = checkPermissionAndCreateDirectory();
+        if (allowed){
+            File tempPhoto;
+            fileName = target + "_" + param + ".jpg";
+            tempPhoto = new File(filePath, fileName);
+            tempPhoto.delete();
+
+            File dir = new File(filePath);
             File[] files = dir.listFiles();
-            if (files.length > 0)
-            {
-                File[] filterFiles = getFilterFiles(dir);
-                if (filterFiles.length > 0)
-                {
-                    File file = filterFiles[0];
-                    Bitmap bitmap = null;
-                    try {
-                        bitmap = BitmapFactory.decodeStream(new FileInputStream(file));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
+            if (files != null && files.length > 0){
+                for (File file : files){
+                    String selectedFileName = FilenameUtils.removeExtension(file.getName());
+                    String targetFileName = target + "_" + param;
+                    if (selectedFileName.contains(targetFileName)){
+                        file.delete();
                     }
-                    int nh = (int) (bitmap.getHeight() * (512.0/bitmap.getWidth()));
-                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 512, nh, true);
-                    odometerImageView.setImageBitmap(scaledBitmap);
                 }
             }
+
+            imageUri = FileProvider.getUriForFile(IndicatorActivity.this, BuildConfig.APPLICATION_ID + ".provider", tempPhoto);
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+            startActivityForResult(cameraIntent, HomeActivity.REQUEST_CODE_PERMISSION);
         }
+
+        odometerEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
+                    if (isCaptured){
+                        String odometerText = odometerEditText.getText().toString();
+                        if (odometerText.isEmpty()){
+                            Toasty.error(getApplicationContext(), "Please input value!", Toast.LENGTH_LONG, true).show();
+                            return false;
+                        }
+                        else{
+                            SaveCaptureImage(param, odometerText);
+                        }
+                    }
+
+                    String[] strings  = filePath.split("/");
+                    String vehicleId = strings[strings.length - 2];
+                    String rentalId = strings[strings.length - 1];
+                    Intent intent = new Intent(getApplicationContext(), IOActivity.class);
+                    intent.putExtra("vehicleId", vehicleId);
+                    intent.putExtra("rentalId", rentalId);
+                    intent.putExtra("target", target);
+                    startActivity(intent);
+                    finish();
+                }
+                return false;
+            }
+        });
 
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isCaptured){
-                    String odometerText = odometerEditText.getText().toString();
-                    if (odometerText.isEmpty()){
-                        Toasty.error(getApplicationContext(), "Please input your keyword!", Toast.LENGTH_LONG, true).show();
-                        return;
-                    }
-                    else{
-                        SaveCaptureImage(param, odometerText);
-                    }
-                }
-
-                String[] strings  = filePath.split("/");
-                String vehicleId = strings[strings.length - 2];
-                String rentalId = strings[strings.length - 1];
-                Intent intent = new Intent(getApplicationContext(), IOActivity.class);
-                intent.putExtra("vehicleId", vehicleId);
-                intent.putExtra("rentalId", rentalId);
-                intent.putExtra("target", target);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-        cameraBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                boolean allowed = checkPermissionAndCreateDirectory();
-                if (allowed){
-                    File tempPhoto;
-                    fileName = target + "_" + param + ".jpg";
-                    tempPhoto = new File(filePath, fileName);
-                    tempPhoto.delete();
-
-                    File dir = new File(filePath);
-                    File[] files = dir.listFiles();
-                    if (files != null && files.length > 0){
-                        for (File file : files){
-                            file.delete();
-                        }
-                    }
-
-                    imageUri = FileProvider.getUriForFile(IndicatorActivity.this, BuildConfig.APPLICATION_ID + ".provider", tempPhoto);
-                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                    startActivityForResult(cameraIntent, HomeActivity.REQUEST_CODE_PERMISSION);
-                }
+                onBackPressed();
             }
         });
     }
@@ -195,7 +185,7 @@ public class IndicatorActivity extends AppCompatActivity implements LocationList
             Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 512, nh, true);
             odometerImageView.setImageBitmap(scaledBitmap);
             isCaptured = true;
-            odometerEditText.setEnabled(true);
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -253,28 +243,6 @@ public class IndicatorActivity extends AppCompatActivity implements LocationList
         }
     }
 
-    private File[] getFilterFiles(File dir) {
-        File[] files = dir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                if (name.contains(target + "_" + param)) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
-        if (files.length > 0){
-            Arrays.sort(files, new Comparator<File>() {
-                @Override
-                public int compare(File o1, File o2) {
-                    return Long.valueOf(o2.lastModified()).compareTo(o1.lastModified());
-                }
-            });
-        }
-        return files;
-    }
-
     @Override
     public void onLocationChanged(Location location) {
         if (location == null){
@@ -320,5 +288,29 @@ public class IndicatorActivity extends AppCompatActivity implements LocationList
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION
         }, HomeActivity.REQUEST_CODE_PERMISSION);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isCaptured){
+            String odometerText = odometerEditText.getText().toString();
+            if (odometerText.isEmpty()){
+                Toasty.error(getApplicationContext(), "Please input value!", Toast.LENGTH_LONG, true).show();
+                return;
+            }
+            else{
+                SaveCaptureImage(param, odometerText);
+            }
+        }
+
+        String[] strings  = filePath.split("/");
+        String vehicleId = strings[strings.length - 2];
+        String rentalId = strings[strings.length - 1];
+        Intent intent = new Intent(getApplicationContext(), IOActivity.class);
+        intent.putExtra("vehicleId", vehicleId);
+        intent.putExtra("rentalId", rentalId);
+        intent.putExtra("target", target);
+        startActivity(intent);
+        finish();
     }
 }

@@ -30,8 +30,6 @@ public class KeyActivity extends AppCompatActivity {
         homeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-                startActivity(intent);
                 onBackPressed();
             }
         });
@@ -56,6 +54,7 @@ public class KeyActivity extends AppCompatActivity {
                 intent.putExtra("rentalId", rentalId);
                 intent.putExtra("target", "Out");
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -79,7 +78,16 @@ public class KeyActivity extends AppCompatActivity {
                 intent.putExtra("rentalId", rentalId);
                 intent.putExtra("target", "In");
                 startActivity(intent);
+                finish();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

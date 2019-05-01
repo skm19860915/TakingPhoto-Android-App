@@ -8,10 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.ExifInterface;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
@@ -109,15 +111,7 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] strings  = filePath.split("/");
-                String vehicleId = strings[strings.length - 2];
-                String rentalId = strings[strings.length - 1];
-                Intent intent = new Intent(getApplicationContext(), IOActivity.class);
-                intent.putExtra("vehicleId", vehicleId);
-                intent.putExtra("rentalId", rentalId);
-                intent.putExtra("target", target);
-                startActivity(intent);
-                finish();
+                onBackPressed();
             }
         });
 
@@ -174,7 +168,7 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
         if (!dir.exists()){
             isCreated = dir.mkdirs();
             if (!isCreated){
-                Toasty.error(getApplicationContext(), "Can't Create Directory", Toast.LENGTH_LONG, true).show();
+                Toasty.error(getApplicationContext(), "Unable to Create Directory", Toast.LENGTH_LONG, true).show();
                 return false;
             }
         }
@@ -229,7 +223,7 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
             }
         }
         else
-            Toasty.error(getApplicationContext(), "No having Files or Directory", Toast.LENGTH_LONG, true).show();
+            Toasty.error(getApplicationContext(), "File or Directory not found!", Toast.LENGTH_LONG, true).show();
 
         File targetDir = new File(filePath);
         File[] filterFiles = getFilterFiles(targetDir);
@@ -241,9 +235,17 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
     }
 
     private void generateCustomImageFile(File file) {
+        ExifInterface exifInterface = null;
+        try {
+            exifInterface = new ExifInterface(file.getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
         try {
             Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(file));
-            Bitmap customBitmap = customBitmapWithInformation(bitmap);
+            Bitmap bmpRotated = getCorrectPositionBitmap(bitmap, orientation);
+            Bitmap customBitmap = customBitmapWithInformation(bmpRotated);
             saveBitmap(customBitmap, file.getName());
         } catch (FileNotFoundException e) {
             Toasty.error(this, "Bitmap create error !!!", Toast.LENGTH_LONG, true).show();
@@ -259,7 +261,7 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
             outputStream.flush();
             outputStream.close();
         } catch (IOException e) {
-            Toasty.error(this, "Can't generate Photo File !!!", Toast.LENGTH_LONG, true).show();
+            Toasty.error(this, "Unable to generate Photo File !!!", Toast.LENGTH_LONG, true).show();
         }
     }
 
@@ -295,7 +297,7 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
             }
         }
         else
-            Toasty.error(this, "Not Found Target File !!!", Toast.LENGTH_SHORT, true).show();
+            Toasty.error(this, "Target File Not Found !!!", Toast.LENGTH_SHORT, true).show();
         return null;
     }
 
@@ -347,6 +349,49 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
         return bitmap;
     }
 
+    private Bitmap getCorrectPositionBitmap(Bitmap bitmap, int orientation) {
+        Matrix matrix = new Matrix();
+        switch (orientation){
+            case ExifInterface.ORIENTATION_NORMAL:
+                return bitmap;
+            case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                matrix.setScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                matrix.setRotate(180);
+                break;
+            case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                matrix.setRotate(180);
+                matrix.postScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_TRANSPOSE:
+                matrix.setRotate(90);
+                matrix.postScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                matrix.setRotate(90);
+                break;
+            case ExifInterface.ORIENTATION_TRANSVERSE:
+                matrix.setRotate(-90);
+                matrix.postScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                matrix.setRotate(-90);
+                break;
+            default:
+                return bitmap;
+        }
+        try{
+            Bitmap bmpRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            bitmap.recycle();
+            return bmpRotated;
+        }
+        catch (OutOfMemoryError e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private String GetDateTimeOfPhoto() {
         String str;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -386,7 +431,7 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
     @Override
     public void onLocationChanged(Location location) {
         if (location == null){
-            Toasty.error(getApplication(), "Can't get Location Information!", Toast.LENGTH_LONG, true).show();
+            Toasty.error(getApplication(), "Unable to get Location Information!", Toast.LENGTH_LONG, true).show();
             return;
         }
         longitude = String.valueOf(location.getLongitude()) ;
@@ -428,5 +473,19 @@ public class ViewPagerActivity extends AppCompatActivity implements LocationList
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION
         }, HomeActivity.REQUEST_CODE_PERMISSION);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        String[] strings  = filePath.split("/");
+        String vehicleId = strings[strings.length - 2];
+        String rentalId = strings[strings.length - 1];
+        Intent intent = new Intent(getApplicationContext(), IOActivity.class);
+        intent.putExtra("vehicleId", vehicleId);
+        intent.putExtra("rentalId", rentalId);
+        intent.putExtra("target", target);
+        startActivity(intent);
+        finish();
     }
 }

@@ -16,6 +16,8 @@ import android.text.TextPaint;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -39,6 +41,10 @@ public class AnnotateActivity extends AppCompatActivity {
     private String otherMsg;
     private Bitmap bitmap;
     private Bitmap scaledBitmap;
+    private CheckBox serviceCheckBox;
+
+    private String annotateFileName;
+    private String serviceFileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +62,7 @@ public class AnnotateActivity extends AppCompatActivity {
         Button chipBtn = findViewById(R.id.chipButton);
         annotateImageView = findViewById(R.id.annotateImageView);
         backBtn = findViewById(R.id.backButton);
+        serviceCheckBox = findViewById(R.id.serviceCheckBox);
 
         Intent intent = getIntent();
         filePath = intent.getStringExtra("filePath");
@@ -88,6 +95,8 @@ public class AnnotateActivity extends AppCompatActivity {
                 intent.putExtra("fileName", fileName);
                 intent.putExtra("param", param);
                 intent.putExtra("target", target);
+
+                intent.putExtra("msg", otherMsg);
                 startActivity(intent);
                 finish();
             }
@@ -100,6 +109,8 @@ public class AnnotateActivity extends AppCompatActivity {
                 intent.putExtra("filePath", filePath);
                 intent.putExtra("param", param);
                 intent.putExtra("target", target);
+
+                intent.putExtra("msg", otherMsg);
                 startActivity(intent);
                 finish();
             }
@@ -158,6 +169,23 @@ public class AnnotateActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 CaptureTargetImage("Chip");
+            }
+        });
+
+        serviceCheckBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (serviceCheckBox.isChecked()){
+                    if (annotateFileName == null){
+                        serviceCheckBox.setChecked(false);
+                        Toasty.error(getApplication(), "Please select annotate name!", Toast.LENGTH_LONG, true).show();
+                        return;
+                    }
+                    SaveAsServiceName();
+                }
+                else{
+                    SaveAsNoneServiceName();
+                }
             }
         });
     }
@@ -225,18 +253,38 @@ public class AnnotateActivity extends AppCompatActivity {
             customName = name;
 
         FileOutputStream outputStream;
-        String fileName = customName + "_" + eventName + "-A.jpg";
+        annotateFileName = customName + "_" + eventName + "-A.jpg";
         try {
-            File outFile = new File(filePath, fileName);
+            File outFile = new File(filePath, annotateFileName);
             outputStream = new FileOutputStream(outFile);
             Bitmap fullBitmap = Bitmap.createScaledBitmap(scaledBitmap, bitmap.getWidth(), bitmap.getHeight(), true);
             fullBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
-            Toasty.success(getApplication(), fileName + " has been saved in successfully !", Toast.LENGTH_LONG, true).show();
+            Toasty.success(getApplication(), annotateFileName + " has been saved in successfully !", Toast.LENGTH_LONG, true).show();
         } catch (IOException e) {
             e.printStackTrace();
             Toasty.error(getApplication(), "File is not created", Toast.LENGTH_LONG, true).show();
+        }
+    }
+
+    private void SaveAsServiceName(){
+        String name = annotateFileName.substring(0, annotateFileName.length() - 6); // remove "-A.jpg" from full file name
+        serviceFileName = name + "_(SERVICE).jpg";
+        File annotateFile = new File(filePath, annotateFileName);
+        File serviceFile = new File(filePath, serviceFileName);
+        if (annotateFile.exists()){
+            annotateFile.renameTo(serviceFile);
+            Toasty.success(getApplication(), serviceFileName + " has been saved in successfully !", Toast.LENGTH_LONG, true).show();
+        }
+    }
+
+    private void SaveAsNoneServiceName(){
+        File serviceFile = new File(filePath, serviceFileName);
+        File annotateFile = new File(filePath, annotateFileName);
+        if (serviceFile.exists()){
+            serviceFile.renameTo(annotateFile);
+            Toasty.success(getApplication(), annotateFileName + " has been saved in successfully !", Toast.LENGTH_LONG, true).show();
         }
     }
 }

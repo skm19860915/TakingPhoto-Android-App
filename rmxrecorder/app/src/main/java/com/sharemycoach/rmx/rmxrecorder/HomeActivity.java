@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import es.dmoral.toasty.Toasty;
@@ -43,7 +47,7 @@ public class HomeActivity extends AppCompatActivity {
     private ImageButton outBtn;
     private ImageButton inBtn;
     private ListView vehicleListView;
-    ArrayList<RentalVehicleModel> arrayList = new ArrayList<>();
+    private ArrayList<RentalVehicleModel> arrayList = new ArrayList<>();
     private RentalVehicleModel selectedModel;
     private String authFilePath;
     public static final int REQUEST_CODE_PERMISSION = 1;
@@ -67,7 +71,6 @@ public class HomeActivity extends AppCompatActivity {
 
         checkStoragePermission();
         checkAzureWebServiceAuthentication();
-        //loadRentalVehicleListFromWebApi();
 
         outBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,6 +80,7 @@ public class HomeActivity extends AppCompatActivity {
                 intent.putExtra("rentalId", selectedModel.getReferenceEstimateSequenceId());
                 intent.putExtra("target", "Out");
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -88,6 +92,7 @@ public class HomeActivity extends AppCompatActivity {
                 intent.putExtra("rentalId", selectedModel.getReferenceEstimateSequenceId());
                 intent.putExtra("target", "In");
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -96,6 +101,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), ScanActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -104,6 +110,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), KeyActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -112,6 +119,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), UploadActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -120,6 +128,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
     }
@@ -131,24 +140,9 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    private void checkAzureWebServiceAuthentication() {
-        authFilePath = getFilesDir() + "/Settings/";
-        File dir = new File(authFilePath);
-        if (dir.isDirectory() && dir.exists()){
-            File file = new File(authFilePath, "azure.txt");
-            if (file.isFile() && file.exists()){
-                loadRentalVehicleListFromWebApi();
-            }
-            else
-                Toasty.error(getApplication(), "Not Found Authentication File!", Toast.LENGTH_LONG, true).show();
-        }
-        else
-            Toasty.error(getApplication(), "Not Found Authentication File!", Toast.LENGTH_LONG, true).show();
-    }
-
-    private void loadRentalVehicleListFromWebApi() {
+    private void loadRentalVehicleListFromRMXWebService(int locationId) {
         queue = Volley.newRequestQueue(this);
-        String url = "http://rmxwebapi.azurewebsites.net/RMXRecorder/RentalVehicle/1";
+        String url = "http://rmxwebapi.azurewebsites.net/RMXRecorder/RentalVehicle/" + locationId;
 
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
             @Override
@@ -198,6 +192,21 @@ public class HomeActivity extends AppCompatActivity {
         queue.add(request);
     }
 
+    private void checkAzureWebServiceAuthentication() {
+        authFilePath = getFilesDir() + "/Settings/";
+        File dir = new File(authFilePath);
+        if (dir.isDirectory() && dir.exists()){
+            File file = new File(authFilePath, "azure.txt");
+            if (file.isFile() && file.exists()){
+                loadRentalVehicleListFromRMXWebService(1);
+            }
+            else
+                Toasty.error(getApplication(), "Authentication File Not Found!", Toast.LENGTH_LONG, true).show();
+        }
+        else
+            Toasty.error(getApplication(), "Authentication File Not Found!", Toast.LENGTH_LONG, true).show();
+    }
+
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
@@ -207,7 +216,7 @@ public class HomeActivity extends AppCompatActivity {
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        onDestroy();
+                        finish();
                         System.exit(0);
                     }
                 })

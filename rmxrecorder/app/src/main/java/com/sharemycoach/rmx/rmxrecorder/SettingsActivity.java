@@ -1,5 +1,6 @@
 package com.sharemycoach.rmx.rmxrecorder;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -49,7 +50,9 @@ public class SettingsActivity extends AppCompatActivity {
     private EditText azureUserNameText;
     private EditText azurePasswordText;
     private Button nasBtn;
+    private Button nasSaveBtn;
     private Button azureBtn;
+    private Button azureSaveBtn;
     private ProgressBar nasProgressBar;
     private ProgressBar azureProgressBar;
     private String path;
@@ -63,10 +66,20 @@ public class SettingsActivity extends AppCompatActivity {
     private String nasPassword;
     private Sardine sardine;
 
+    private boolean successOfWebDAVConnection;
+    private boolean successOfRMXWebAPIConnection;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        nasBtn = findViewById(R.id.nasButton);
+        nasSaveBtn = findViewById(R.id.nasSavebutton);
+        azureBtn = findViewById(R.id.azureButton);
+        azureSaveBtn = findViewById(R.id.azureSaveButton);
+        nasProgressBar = findViewById(R.id.nasProgressBar);
+        azureProgressBar = findViewById(R.id.azureProgressBar);
 
         locationText = findViewById(R.id.locationEditText);
         nasServerText = findViewById(R.id.serverEditText1);
@@ -75,10 +88,7 @@ public class SettingsActivity extends AppCompatActivity {
         azureServerText = findViewById(R.id.serverEditText2);
         azureUserNameText = findViewById(R.id.nameEditText2);
         azurePasswordText = findViewById(R.id.passwordEditText2);
-        nasBtn = findViewById(R.id.nasButton);
-        azureBtn = findViewById(R.id.azureButton);
-        nasProgressBar = findViewById(R.id.nasProgressBar);
-        azureProgressBar = findViewById(R.id.azureProgressBar);
+
         nasProgressBar.setVisibility(View.GONE);
         azureProgressBar.setVisibility(View.GONE);
         path = getFilesDir() + "/Settings/";
@@ -95,7 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 nasSever = nasServerText.getText().toString();
                 if (nasSever.isEmpty()){
-                    Toasty.error(getApplication(), "Please input NAS Server Address !", Toast.LENGTH_LONG, true).show();
+                    Toasty.error(getApplication(), "Please input NAS Server URL !", Toast.LENGTH_LONG, true).show();
                     return;
                 }
                 nasUserName = nasUserNameText.getText().toString();
@@ -109,7 +119,38 @@ public class SettingsActivity extends AppCompatActivity {
                     return;
                 }
                 nasProgressBar.setVisibility(View.VISIBLE);
-                checkWebDavSessionAndSaveAuthentication();
+                connectWebDAVServer();
+            }
+        });
+
+        nasSaveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                location = locationText.getText().toString();
+                if (location.isEmpty()){
+                    Toasty.error(getApplication(), "Location Id is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                nasSever = nasServerText.getText().toString();
+                if (nasSever.isEmpty()){
+                    Toasty.error(getApplication(), "NAS Server Address is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                nasUserName = nasUserNameText.getText().toString();
+                if (nasUserName.isEmpty()){
+                    Toasty.error(getApplication(), "UserName is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                nasPassword = nasPasswordText.getText().toString();
+                if (nasPassword.isEmpty()){
+                    Toasty.error(getApplication(), "Password is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                if (!successOfWebDAVConnection){
+                    Toasty.error(getApplication(), "Config information is incorrect ! Please try to login again !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                saveWebDAVServerConfiguration();
             }
         });
 
@@ -123,7 +164,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 azureServer = azureServerText.getText().toString();
                 if (azureServer.isEmpty()){
-                    Toasty.error(getApplication(), "Please input Azure Server Address !", Toast.LENGTH_LONG, true).show();
+                    Toasty.error(getApplication(), "Please input Azure Server URL !", Toast.LENGTH_LONG, true).show();
                     return;
                 }
                 azureUserName = azureUserNameText.getText().toString();
@@ -137,44 +178,74 @@ public class SettingsActivity extends AppCompatActivity {
                     return;
                 }
                 azureProgressBar.setVisibility(View.VISIBLE);
-                saveAzureInformation();
+                connectWebService();
+            }
+        });
+
+        azureSaveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                location = locationText.getText().toString();
+                if (location.isEmpty()){
+                    Toasty.error(getApplication(), "Location Id is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                azureServer = azureServerText.getText().toString();
+                if (azureServer.isEmpty()){
+                    Toasty.error(getApplication(), "Azure Server Address is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                azureUserName = azureUserNameText.getText().toString();
+                if (azureUserName.isEmpty()){
+                    Toasty.error(getApplication(), "UserName is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                azurePassword = azurePasswordText.getText().toString();
+                if (azurePassword.isEmpty()){
+                    Toasty.error(getApplication(), "Password is empty !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                if (!successOfRMXWebAPIConnection){
+                    Toasty.error(getApplication(), "Config information is incorrect ! Please try to login again !", Toast.LENGTH_LONG, true).show();
+                    return;
+                }
+                saveWebServiceConfiguration();
             }
         });
     }
 
-    private void checkWebDavSessionAndSaveAuthentication() {
+    private void saveWebDAVServerConfiguration() {
+        File dir = new File(path);
+        if (!dir.exists())
+            dir.mkdirs();
+
+        File file = new File(path + "nas.txt");
+        if (file.exists() && file.isFile())
+            file.delete();
+
+        String info = location + " " + nasSever + " " + nasUserName + " " + nasPassword;
+        boolean successOfSaving = saveSettingsFile(file, info);
+        if (successOfSaving)
+            Toasty.success(getApplicationContext(), "WebDAV Configuration successfully saved!", Toast.LENGTH_LONG, true).show();
+    }
+
+    private void connectWebDAVServer() {
         sardine = new OkHttpSardine();
         sardine.setCredentials(nasUserName, nasPassword);
         new AsyncConnectivity().execute();
     }
 
     private class AsyncConnectivity extends AsyncTask<Void, Void, Void>{
-        private boolean success;
 
         @Override
         protected Void doInBackground(Void... voids) {
             try{
                 List<DavResource> resources = sardine.list("http://" + nasSever);
-                if (resources == null || resources.size() < 1){
-                    success = false;
-                    return null;
-                }
-                else{
-                    File dir = new File(path);
-                    if (!dir.exists()){
-                        dir.mkdirs();
-                    }
-                    File file = new File(path + "/nas.txt");
-                    if (file.exists() && file.isFile())
-                        file.delete();
-                    String info = location + " " + nasSever + " " + nasUserName + " " + nasPassword;
-                    saveSettingsFile(file, info);
-                    success = true;
-                    return null;
-                }
+                if (resources != null && resources.size()> 0)
+                    successOfWebDAVConnection = true;
             }
             catch (IOException e){
-                success = false;
+                successOfWebDAVConnection = false;
                 e.printStackTrace();
             }
             return null;
@@ -182,8 +253,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            if (success)
-                Toasty.success(getApplication(), "Success to Connect to WebDAV Server !", Toast.LENGTH_LONG, true).show();
+            if (successOfWebDAVConnection)
+                Toasty.success(getApplication(), "Successfully Connected to WebDAV Server !", Toast.LENGTH_LONG, true).show();
             else
                 Toasty.error(getApplication(), "Failed to Connect to WebDAV Server !", Toast.LENGTH_LONG, true).show();
             nasProgressBar.setVisibility(View.GONE);
@@ -191,11 +262,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    private void saveAzureInformation() {
+    private void connectWebService() {
         queue = Volley.newRequestQueue(this);
-        String url = "http://" + azureServer + "/RMXRecorder/Auth/" + azureUserName + "?password=" + azurePassword;
+        String url = "http://" + azureServer + "/RMXRecorder/Auth?user=" + azureUserName + "&pass=" + azurePassword;
         if (!azureServer.equals("rmxwebapi.azurewebsites.net")){
-            Toasty.error(getApplication(), "Server Address is Wrong! Please Try Again !", Toast.LENGTH_LONG, true).show();
+            Toasty.error(getApplication(), "Server Address is incorrect! Please Try Again !", Toast.LENGTH_LONG, true).show();
             azureProgressBar.setVisibility(View.GONE);
             return;
         }
@@ -203,33 +274,42 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onResponse(String response) {
                 String result = response;
-                File dir = new File(path);
-                if (!dir.exists()){
-                    dir.mkdirs();
-                }
-                File file = new File(path + "/azure.txt");
-                if (file.exists() && file.isFile())
-                    file.delete();
-                if (result.equals("1")){
-                    azureProgressBar.setVisibility(View.GONE);
-                    Toasty.success(getApplication(), "Success to Connect to Azure Webservice !", Toast.LENGTH_LONG, true).show();
-                    String info = location + " " + azureServer + " " + azureUserName + " " + azurePassword;
-                    saveSettingsFile(file, info);
+
+                if (result.contains("allow_rmx")){
+                    successOfRMXWebAPIConnection = true;
+                    Toasty.success(getApplicationContext(), "Successfully Connected to Azure WebService !", Toast.LENGTH_LONG, true).show();
                 }
                 else{
-                    azureProgressBar.setVisibility(View.GONE);
-                    Toasty.error(getApplication(), "Failed to Connect to Azure Webservice !", Toast.LENGTH_LONG, true).show();
+                    successOfRMXWebAPIConnection = false;
+                    Toasty.error(getApplicationContext(), "Fail to Connect to Azure WebService !", Toast.LENGTH_LONG, true).show();
                 }
+
+                azureProgressBar.setVisibility(View.GONE);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("RMXRecorder>>>>>>>>>", error.toString());
+                successOfRMXWebAPIConnection = false;
                 azureProgressBar.setVisibility(View.GONE);
-                Toasty.error(getApplication(), "Failed to Authentication of Webservice !", Toast.LENGTH_SHORT, true).show();
+                Toasty.error(getApplication(), "Fail to Authentication to the WebService !", Toast.LENGTH_LONG, true).show();
             }
         });
         queue.add(request);
+    }
+
+    private void saveWebServiceConfiguration(){
+        File dir = new File(path);
+        if (!dir.exists())
+            dir.mkdirs();
+
+        File file = new File(path + "/azure.txt");
+        if (file.exists() && file.isFile())
+            file.delete();
+
+        String info = location + " " + azureServer + " " + azureUserName + " " + azurePassword;
+        boolean successOfSaving = saveSettingsFile(file, info);
+        if (successOfSaving)
+            Toasty.success(getApplicationContext(), "Successfully saved WebService Configuration !", Toast.LENGTH_LONG, true).show();
     }
 
     private void loadSettingsInformation(String path) {
@@ -285,30 +365,43 @@ public class SettingsActivity extends AppCompatActivity {
         return builder.toString();
     }
 
-    private void saveSettingsFile(File file, String info) {
+    private boolean saveSettingsFile(File file, String info) {
         FileOutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(file);
         } catch (FileNotFoundException e) {
-            Toasty.error(getApplication(), "Not Found File !", Toast.LENGTH_LONG, true).show();
+            Toasty.error(getApplication(), "File Not found!", Toast.LENGTH_LONG, true).show();
             e.printStackTrace();
+            return false;
         }
-        try {
+        try
+        {
             outputStream.write(info.getBytes());
-        } catch (IOException e) {
-            try {
+            return true;
+        }
+        catch (IOException e)
+        {
+            try
+            {
                 outputStream.close();
-            } catch (IOException e1) {
+            } catch (IOException e1)
+            {
                 Toasty.error(getApplication(), "Close Error !", Toast.LENGTH_LONG, true).show();
                 e1.printStackTrace();
+                return false;
             }
+
             Toasty.error(getApplication(), "Write Error !", Toast.LENGTH_LONG, true).show();
             e.printStackTrace();
+            return false;
         }
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

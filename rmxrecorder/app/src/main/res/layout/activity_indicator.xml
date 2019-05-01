@@ -23,7 +23,6 @@
                 android:layout_height="wrap_content"
                 android:background="@color/colorHeader">
 
-
                 <TextView
                     android:id="@+id/keyTextView"
                     android:layout_width="wrap_content"
@@ -54,7 +53,7 @@
             android:id="@+id/middle_section"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="100dp"
+            android:layout_marginBottom="40dp"
             android:layout_marginTop="60dp"
             android:orientation="vertical">
 
@@ -90,10 +89,10 @@
                         android:background="@drawable/border_dark"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:padding="5dp"
-                        android:textColor="@color/colorBlack"
                         android:textStyle="bold"
                         android:layout_gravity="center_vertical"
+                        android:padding="5dp"
+                        android:textColor="@color/colorBlack"
                         android:layout_marginRight="5dp"
                         android:textSize="20dp"
                         android:text="" />
@@ -119,30 +118,5 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/bottom_section"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_alignParentBottom="true"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="left|center"
-                android:orientation="horizontal">
-
-                <ImageButton
-                    android:id="@+id/largecameraButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:background="@drawable/ic_large_camera"
-                    app:srcCompat="@drawable/ic_large_camera" />
-            </LinearLayout>
-
-        </LinearLayout>
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>

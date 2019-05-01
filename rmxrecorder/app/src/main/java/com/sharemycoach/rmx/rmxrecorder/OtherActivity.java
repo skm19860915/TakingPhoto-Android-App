@@ -37,7 +37,7 @@ public class OtherActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String string = otherEditText.getText().toString();
                 if (string.isEmpty()){
-                    Toasty.error(getApplication(), "Please input some value!", Toast.LENGTH_LONG, true).show();
+                    Toasty.error(getApplication(), "Please input a value!", Toast.LENGTH_LONG, true).show();
                     return;
                 }
                 Intent intent = new Intent(getApplicationContext(), AnnotateActivity.class);

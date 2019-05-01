@@ -158,14 +158,30 @@
                     android:textSize="25dp" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/nasButton"
-                android:layout_weight="1"
-                android:layout_gravity="center"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="Login" />
+                android:layout_gravity="center"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/nasButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="50sp"
+                    android:text="Login" />
+
+                <Button
+                    android:id="@+id/nasSavebutton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5dp"
+                    android:text="Save" />
+
+            </LinearLayout>
 
             <ProgressBar
                 android:id="@+id/nasProgressBar"
@@ -269,23 +285,38 @@
                     android:textSize="25dp" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/azureButton"
-                android:layout_weight="1"
-                android:layout_gravity="center"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Login" />
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/azureButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginRight="50sp"
+                    android:layout_marginTop="10dp"
+                    android:text="Login" />
+
+                <Button
+                    android:id="@+id/azureSaveButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="10dp"
+                    android:text="Save" />
+
+            </LinearLayout>
 
             <ProgressBar
                 android:id="@+id/azureProgressBar"
-                android:layout_marginTop="10dp"
                 style="?android:attr/progressBarStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:progressDrawable="@drawable/circular_progress_bar"
-                />
+                android:layout_marginTop="10dp"
+                android:progressDrawable="@drawable/circular_progress_bar" />
 
         </LinearLayout>
 

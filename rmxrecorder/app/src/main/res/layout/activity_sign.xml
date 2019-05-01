@@ -23,7 +23,6 @@
                 android:layout_height="wrap_content"
                 android:background="@color/colorHeader">
 
-
                 <TextView
                     android:id="@+id/keyTextView"
                     android:layout_width="wrap_content"
@@ -130,8 +129,6 @@
                             android:text="For: Heidi Smith" />
 
                     </LinearLayout>
-
-
 
                 </LinearLayout>
 

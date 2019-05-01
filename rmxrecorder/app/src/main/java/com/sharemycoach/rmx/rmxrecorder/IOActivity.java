@@ -39,8 +39,6 @@ public class IOActivity extends AppCompatActivity {
         signTextView = findViewById(R.id.signTextView);
         keyTextView = findViewById(R.id.keyTextView);
 
-        //outsideTextView.setEnabled(false);
-        //chronometerTextView.setEnabled(false);
 
         Intent intent = getIntent();
         vehicleId = intent.getStringExtra("vehicleId");
@@ -53,9 +51,7 @@ public class IOActivity extends AppCompatActivity {
         homeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-                startActivity(intent);
-                finish();
+                onBackPressed();
             }
         });
 
@@ -67,6 +63,7 @@ public class IOActivity extends AppCompatActivity {
                 intent.putExtra("param", "LicensePlate");
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -78,6 +75,7 @@ public class IOActivity extends AppCompatActivity {
                 intent.putExtra("param", "OutSide");
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -89,6 +87,7 @@ public class IOActivity extends AppCompatActivity {
                 intent.putExtra("param", "InSide");
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -100,6 +99,7 @@ public class IOActivity extends AppCompatActivity {
                 intent.putExtra("param", "Package");
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -111,6 +111,7 @@ public class IOActivity extends AppCompatActivity {
                 intent.putExtra("param", "Odometer");
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -122,6 +123,7 @@ public class IOActivity extends AppCompatActivity {
                 intent.putExtra("param", "Chronometer");
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -132,6 +134,7 @@ public class IOActivity extends AppCompatActivity {
                 intent.putExtra("filePath", filePath);
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
     }
@@ -213,5 +216,8 @@ public class IOActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

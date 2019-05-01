@@ -29,7 +29,6 @@
                     android:layout_height="wrap_content"
                     android:background="@color/colorHeader">
 
-
                     <ImageButton
                         android:id="@+id/homeButton"
                         android:layout_width="wrap_content"
@@ -112,8 +111,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
+                    android:layout_marginLeft="25dp"
+                    android:layout_marginRight="25dp"
                     android:orientation="vertical">
 
                     <ListView
@@ -121,8 +120,8 @@
                         android:layout_weight="1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@color/colorWhite"
                         android:choiceMode="singleChoice"
+                        android:background="@color/colorWhite"
                         android:listSelector="@android:color/darker_gray"
                         />
 
@@ -139,8 +138,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:gravity="center"
+                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <ImageButton
@@ -231,8 +230,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:gravity="center"
+                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <ImageButton
@@ -252,6 +251,7 @@
                 </LinearLayout>
 
             </LinearLayout>
+
         </LinearLayout>
 
     </RelativeLayout>

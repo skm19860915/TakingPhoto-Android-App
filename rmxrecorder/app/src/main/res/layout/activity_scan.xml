@@ -39,16 +39,47 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/dataTextView"
+                android:id="@+id/makeAndModelTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginTop="10dp"
                 android:layout_weight="1"
                 android:textAlignment="center"
-                android:textSize="20dp"
+                android:gravity="center"
+                android:textSize="40dp"
+                android:textColor="@color/colorBlack"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/vehicleIdTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:textSize="100dp"
+                android:textColor="@color/colorBlack"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/licensePlateTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textSize="25dp"
+                android:textColor="@color/colorBlack"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/rentalIdTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="@color/colorBlack"
+                android:textSize="25dp"
                 android:text="" />
 
         </LinearLayout>

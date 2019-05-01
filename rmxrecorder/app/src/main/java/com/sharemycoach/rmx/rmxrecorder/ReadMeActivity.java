@@ -32,7 +32,22 @@ public class ReadMeActivity extends AppCompatActivity {
                 intent.putExtra("filePath", filePath);
                 intent.putExtra("target", target);
                 startActivity(intent);
+                finish();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        String[] strings  = filePath.split("/");
+        String vehicleId = strings[strings.length - 2];
+        String rentalId = strings[strings.length - 1];
+        Intent intent = new Intent(getApplicationContext(), IOActivity.class);
+        intent.putExtra("vehicleId", vehicleId);
+        intent.putExtra("rentalId", rentalId);
+        intent.putExtra("target", target);
+        startActivity(intent);
+        finish();
     }
 }

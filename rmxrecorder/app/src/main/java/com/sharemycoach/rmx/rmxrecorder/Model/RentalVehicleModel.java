@@ -6,28 +6,36 @@ public class RentalVehicleModel {
     private String LocationSequenceId;
     private String LicensePlate;
 
-    public String getReferenceEstimateSequenceId(){
+    public String getReferenceEstimateSequenceId()
+    {
         return ReferenceEstimateSequenceId;
     }
-    public void setReferenceEstimateSequenceId(String ReferenceEstimateSequenceId){
+    public void setReferenceEstimateSequenceId(String ReferenceEstimateSequenceId)
+    {
         this.ReferenceEstimateSequenceId = ReferenceEstimateSequenceId;
     }
-    public String getQuickFindKeyWord(){
+    public String getQuickFindKeyWord()
+    {
         return QuickFindKeyWord;
     }
-    public void setQuickFindKeyWord(String QuickFindKeyWord){
+    public void setQuickFindKeyWord(String QuickFindKeyWord)
+    {
         this.QuickFindKeyWord = QuickFindKeyWord;
     }
-    public String getLocationSequenceId() {
+    public String getLocationSequenceId()
+    {
         return LocationSequenceId;
     }
-    public void setLocationSequenceId(String LocationSequenceId){
+    public void setLocationSequenceId(String LocationSequenceId)
+    {
         this.LocationSequenceId = LocationSequenceId;
     }
-    public String getLicensePlate() {
+    public String getLicensePlate()
+    {
         return LicensePlate;
     }
-    public void setLicensePlate(String LicensePlate){
+    public void setLicensePlate(String LicensePlate)
+    {
         this.LicensePlate = LicensePlate;
     }
 }

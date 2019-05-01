@@ -12,8 +12,8 @@ import android.widget.ListView;
 import java.io.File;
 
 public class PhotoListActivity extends AppCompatActivity {
-    ListView photoListView;
-    String path;
+    private ListView photoListView;
+    private String path;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

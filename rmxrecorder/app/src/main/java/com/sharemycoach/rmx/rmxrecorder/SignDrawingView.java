@@ -15,6 +15,8 @@ public class SignDrawingView extends View {
     Canvas mCanvas;
     Path mPath;
     Paint   mBitmapPaint;
+    public boolean isTouched;
+
     public SignDrawingView(Context context) {
         super(context);
         mPaint = new Paint();
@@ -72,6 +74,7 @@ public class SignDrawingView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        isTouched = true;
         float x = event.getX();
         float y = event.getY();
 
