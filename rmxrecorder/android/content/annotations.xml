@@ -1,5 +1,0 @@
-<root>
-    <item name='android.content.Context LOCATION_SERVICE'>
-        <annotation name='java.lang.Deprecated' />
-    </item>
-</root>
