@@ -173,7 +173,7 @@ public class UploadListAdapter extends BaseAdapter implements ListAdapter{
         }
         files = dir.listFiles();
         if (files == null || files.length < 1){
-            Toasty.error(context, "No such files in this directory!", Toast.LENGTH_LONG, true).show();
+            Toasty.error(context, "No files in this directory!", Toast.LENGTH_LONG, true).show();
             return;
         }
         String[] list = getWebDavConfigFile(context);
@@ -182,26 +182,35 @@ public class UploadListAdapter extends BaseAdapter implements ListAdapter{
             return;
         }
 
+        authenticateOfWebDAV(list);
+        runUploading();
+    }
+
+    private void runUploading() {
         progressDialog = new ProgressDialog(context);
         progressDialog.setTitle("Uploading");
-        progressDialog.setMessage("Please wait......");
         progressDialog.show();
 
+        new AsyncUploadTask().execute();
+    }
+
+    private void authenticateOfWebDAV(String[] list) {
         nasServerName = list[1];
         nasUserName = list[2];
         nasPassword = list[3];
         sardine = new OkHttpSardine();
         sardine.setCredentials(nasUserName, nasPassword);
-        new AsyncUploadTask().execute();
     }
 
-    private class AsyncUploadTask extends AsyncTask<Void, Void, Void>{
+    private class AsyncUploadTask extends AsyncTask<Void, String, Void>{
         private int status;
         private String targetUrl;
 
         @Override
         protected Void doInBackground(Void... voids) {
             try {
+                Thread.sleep(1);
+                publishProgress("Checking Server Status......");
                 String rootUrl = "http://" + nasServerName + "/RMXRecorder/OutInPhotos/";
                 if (!sardine.exists(rootUrl))
                     sardine.createDirectory(rootUrl);
@@ -215,18 +224,38 @@ public class UploadListAdapter extends BaseAdapter implements ListAdapter{
                 e.printStackTrace();
                 status = -1;
                 return null;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                status = -1;
+                return null;
             }
+
             for (int i = 0; i < files.length; i++){
                 try {
                     byte[] data = FileUtils.readFileToByteArray(files[i]);
+                    Thread.sleep(1);
+                    String numberText = "Uploading " + String.valueOf(i + 1) + " of " + String.valueOf(files.length);
+                    String detailInformationText = "Vehicle : " + vehicleId + " Rental : " + rentalId;
+                    String newLineText = System.getProperty("line.separator");
+                    String fileNameText = "Sending File : " + files[i].getName();
+                    publishProgress(numberText + newLineText + detailInformationText + newLineText + fileNameText);
                     sardine.put(targetUrl + files[i].getName(), data);
                     status = 1;
                 } catch (IOException e) {
                     e.printStackTrace();
                     status = 0;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    status = 0;
                 }
             }
             return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            progressDialog.setMessage(values[0]);
         }
 
         @Override
